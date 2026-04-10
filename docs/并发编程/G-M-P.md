@@ -60,6 +60,7 @@ type p struct {
 ### 2.2 调度器执行机制（附典型耗时）
 
 #### 整体调度循环（M 调度 P，P 调度 G）
+![调度器正常调度流程](https://img.draven.co/2020-02-05-15808864354669-golang-scheduler-loop.png)
 
 ```mermaid
 graph TD
