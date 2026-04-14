@@ -227,19 +227,20 @@ func runConcurrentTasks(ctx context.Context, tasks []func(ctx context.Context) e
 ## 7. Context 生命周期（带时间）
 
 ```mermaid
-graph TD
-    Start([请求到达]) --> Create[创建根 Context<br>context.Background()]
-    Create --> WithTimeout[WithTimeout 创建子 Context<br>设置截止 2s<br>≈ 1 µs]
-    WithTimeout --> Pass[传递给多个 Goroutine<br>监听 Done channel]
-    Pass --> Wait{2s 内任务完成？}
-    Wait -- 是 --> Finish[任务正常结束]
-    Finish --> Cancel[主动 cancel<br>释放 timer 资源]
-    Cancel --> End([请求完成])
-    Wait -- 否 --> Timeout[超时触发<br>timeout channel 接收]
-    Timeout --> CancelPropagate[取消传播给所有子 context<br>≈ 100 ns]
-    CancelPropagate --> GoroutineExit[Goroutine 收到取消信号<br>退出并清理]
+flowchart TD
+    Start(["请求到达"]) --> Create["创建根 Context<br>context.Background()"]
+    Create --> WithTimeout["WithTimeout 创建子 Context<br>设置截止 2s<br>≈ 1 µs"]
+    WithTimeout --> Pass["传递给多个 Goroutine<br>监听 Done channel"]
+    Pass --> Wait{"2s 内任务完成？"}
+    Wait -- 是 --> Finish["任务正常结束"]
+    Finish --> Cancel["主动 cancel<br>释放 timer 资源"]
+    Cancel --> End(["请求完成"])
+    Wait -- 否 --> Timeout["超时触发<br>timeout channel 接收"]
+    Timeout --> CancelPropagate["取消传播给所有子 context<br>≈ 100 ns"]
+    CancelPropagate --> GoroutineExit["Goroutine 收到取消信号<br>退出并清理"]
     GoroutineExit --> End
 ```
+
 
 **典型时间节点**：
 - 创建 Context：≈ 50 ns
