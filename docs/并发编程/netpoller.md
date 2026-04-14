@@ -208,19 +208,19 @@ func dialWithContext(ctx context.Context, network, addr string) (net.Conn, error
 ## 6. 网络轮询器生命周期（流程图，带时间）
 
 ```mermaid
-graph TD
-    Start([程序启动]) --> Init[netpoll 初始化<br>创建 epoll/kqueue 句柄<br>≈ 10 µs]
-    Init --> Listen[监听端口，接收连接<br>创建 netFD]
-    Listen --> Register[每个连接注册到 netpoller<br>调用 netpollopen，≈ 200 ns]
-    Register --> Wait[goroutine 阻塞在 I/O<br>调用 netpollcheck 并 gopark]
-    Wait --> SchedIdle[调度器空闲，调用 netpoll(true)<br>epoll_wait 阻塞]
-    SchedIdle --> Event[网络事件到达<br>epoll_wait 返回，≈ 1-10 µs]
-    Event --> WakeG[唤醒等待的 goroutine<br>≈ 1-2 µs]
-    WakeG --> Process[goroutine 处理数据]
-    Process --> Close{连接关闭？}
+flowchart TD
+    Start(["程序启动"]) --> Init["netpoll 初始化<br>创建 epoll/kqueue 句柄<br>≈ 10 µs"]
+    Init --> Listen["监听端口，接收连接<br>创建 netFD"]
+    Listen --> Register["每个连接注册到 netpoller<br>调用 netpollopen，≈ 200 ns"]
+    Register --> Wait["goroutine 阻塞在 I/O<br>调用 netpollcheck 并 gopark"]
+    Wait --> SchedIdle["调度器空闲，调用 netpoll(true)<br>epoll_wait 阻塞"]
+    SchedIdle --> Event["网络事件到达<br>epoll_wait 返回，≈ 1-10 µs"]
+    Event --> WakeG["唤醒等待的 goroutine<br>≈ 1-2 µs"]
+    WakeG --> Process["goroutine 处理数据"]
+    Process --> Close{"连接关闭？"}
     Close -- 否 --> Wait
-    Close -- 是 --> Unregister[从 netpoller 注销<br>netpollclose，≈ 200 ns]
-    Unregister --> End([连接生命周期结束])
+    Close -- 是 --> Unregister["从 netpoller 注销<br>netpollclose，≈ 200 ns"]
+    Unregister --> End(["连接生命周期结束"])
 ```
 
 **关键时间点**：

@@ -144,30 +144,30 @@ func main() {
 ## 6. 系统监控生命周期（流程图，带时间）
 
 ```mermaid
-graph TD
-    Start([程序启动]) --> Init[创建 sysmon 线程<br>≈ 10 µs]
-    Init --> Loop[进入无限循环]
-    Loop --> Sleep[休眠 20µs ~ 10ms<br>（动态调整）]
-    Sleep --> CheckPreempt[检查是否需要抢占 G]
-    CheckPreempt --> HasLongG{存在运行>10ms 的 G？}
-    HasLongG -- 是 --> SendSignal[发送 SIGURG 抢占信号<br>≈ 1-2 µs]
+flowchart TD
+    Start(["程序启动"]) --> Init["创建 sysmon 线程<br>≈ 10 µs"]
+    Init --> Loop["进入无限循环"]
+    Loop --> Sleep["休眠 20µs ~ 10ms<br>（动态调整）"]
+    Sleep --> CheckPreempt["检查是否需要抢占 G"]
+    CheckPreempt --> HasLongG{"存在运行>10ms 的 G？"}
+    HasLongG -- 是 --> SendSignal["发送 SIGURG 抢占信号<br>≈ 1-2 µs"]
     SendSignal --> CheckSyscall
-    HasLongG -- 否 --> CheckSyscall[检查系统调用阻塞 P]
-    CheckSyscall --> HasLongSyscall{存在 _Psyscall >10ms 的 P？}
-    HasLongSyscall -- 是 --> Handoff[解绑 P，交给其他 M<br>≈ 200-300 ns]
-    HasLongSyscall -- 否 --> CheckNetpoll[检查网络轮询]
+    HasLongG -- 否 --> CheckSyscall["检查系统调用阻塞 P"]
+    CheckSyscall --> HasLongSyscall{"存在 _Psyscall >10ms 的 P？"}
+    HasLongSyscall -- 是 --> Handoff["解绑 P，交给其他 M<br>≈ 200-300 ns"]
+    HasLongSyscall -- 否 --> CheckNetpoll["检查网络轮询"]
     Handoff --> CheckNetpoll
-    CheckNetpoll --> NeedNetpoll{距离上次 netpoll >10ms？}
-    NeedNetpoll -- 是 --> DoNetpoll[调用 netpoll(false)<br>≈ 1-10 µs]
-    DoNetpoll --> InjectG[将就绪 G 放入全局队列]
-    NeedNetpoll -- 否 --> CheckTimer[检查计时器]
+    CheckNetpoll --> NeedNetpoll{"距离上次 netpoll >10ms？"}
+    NeedNetpoll -- 是 --> DoNetpoll["调用 netpoll(false)<br>≈ 1-10 µs"]
+    DoNetpoll --> InjectG["将就绪 G 放入全局队列"]
+    NeedNetpoll -- 否 --> CheckTimer["检查计时器"]
     InjectG --> CheckTimer
-    CheckTimer --> HasTimer{存在到期计时器<br>且对应 P 未调度？}
-    HasTimer -- 是 --> FireTimer[触发计时器]
-    HasTimer -- 否 --> CheckGC[检查 GC 条件]
+    CheckTimer --> HasTimer{"存在到期计时器<br>且对应 P 未调度？"}
+    HasTimer -- 是 --> FireTimer["触发计时器"]
+    HasTimer -- 否 --> CheckGC["检查 GC 条件"]
     FireTimer --> CheckGC
-    CheckGC --> NeedGC{距离上次 GC >2分钟？}
-    NeedGC -- 是 --> StartGC[主动触发 GC<br>≈ 100 µs 以上]
+    CheckGC --> NeedGC{"距离上次 GC >2分钟？"}
+    NeedGC -- 是 --> StartGC["主动触发 GC<br>≈ 100 µs 以上"]
     NeedGC -- 否 --> Loop
     StartGC --> Loop
 ```

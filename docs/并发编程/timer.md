@@ -156,24 +156,24 @@ graph TD
 ## 3. 执行机制流程图（附典型耗时）
 
 ```mermaid
-graph TD
-    Start([调用 NewTimer/After]) --> Alloc[分配 timer 结构<br>≈ 50 ns]
-    Alloc --> AddTimer[调用 addtimer<br>插入当前 P 的堆]
-    AddTimer --> SiftUp[堆上浮调整<br>O(log n) ≈ 100-200 ns]
-    SiftUp --> Check{堆顶是否变化？}
-    Check -- 是 --> Wake[如果 P 空闲，唤醒 M<br>≈ 1 µs]
-    Check -- 否 --> Wait[等待调度循环检查]
-    Wait --> Sched[调度器调用 checkTimers]
-    Sched --> GetTop[获取堆顶触发时间<br>≈ 10 ns]
-    GetTop --> Expired{当前时间 ≥ when？}
-    Expired -- 否 --> Sleep[计算剩余睡眠时间<br>调用 netpoll 阻塞]
+flowchart TD
+    Start(["调用 NewTimer/After"]) --> Alloc["分配 timer 结构<br>≈ 50 ns"]
+    Alloc --> AddTimer["调用 addtimer<br>插入当前 P 的堆"]
+    AddTimer --> SiftUp["堆上浮调整<br>O(log n) ≈ 100-200 ns"]
+    SiftUp --> Check{"堆顶是否变化？"}
+    Check -- 是 --> Wake["如果 P 空闲，唤醒 M<br>≈ 1 µs"]
+    Check -- 否 --> Wait["等待调度循环检查"]
+    Wait --> Sched["调度器调用 checkTimers"]
+    Sched --> GetTop["获取堆顶触发时间<br>≈ 10 ns"]
+    GetTop --> Expired{"当前时间 ≥ when？"}
+    Expired -- 否 --> Sleep["计算剩余睡眠时间<br>调用 netpoll 阻塞"]
     Sleep --> Wait
-    Expired -- 是 --> CallBack[执行回调函数 f<br>（用户代码）]
-    CallBack --> HasPeriod{period > 0？}
-    HasPeriod -- 是 --> ResetTimer[重置 when += period<br>堆调整 ≈ 100-200 ns]
-    HasPeriod -- 否 --> Remove[从堆中删除<br>≈ 100-200 ns]
+    Expired -- 是 --> CallBack["执行回调函数 f<br>（用户代码）"]
+    CallBack --> HasPeriod{"period > 0？"}
+    HasPeriod -- 是 --> ResetTimer["重置 when += period<br>堆调整 ≈ 100-200 ns"]
+    HasPeriod -- 否 --> Remove["从堆中删除<br>≈ 100-200 ns"]
     ResetTimer --> Wait
-    Remove --> End([计时器停止])
+    Remove --> End(["计时器停止"])
 ```
 
 **典型时间消耗**：
